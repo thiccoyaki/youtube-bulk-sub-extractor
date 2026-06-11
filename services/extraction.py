@@ -50,13 +50,33 @@ def attach_transcripts(details: List[Dict], opts: TranscriptOptions) -> None:
             r["transcript_debug_reason"] = "Fetch transcripts disabled"
         return
 
-    st.info("Fetching transcripts...")
+    if opts.min_views_for_transcript:
+        st.info(
+            f"Fetching transcripts for videos with ≥ {opts.min_views_for_transcript:,} views..."
+        )
+    else:
+        st.info("Fetching transcripts...")
     progress = st.progress(0.0)
     total = len(details)
     consecutive_blocks = 0
 
     for i, r in enumerate(details, start=1):
         vid = r["video_id"]
+
+        # Skip transcript for videos below the view threshold
+        if opts.min_views_for_transcript is not None:
+            try:
+                views = int(r.get("view_count") or 0)
+            except (ValueError, TypeError):
+                views = 0
+            if views < opts.min_views_for_transcript:
+                r["transcript"] = None
+                r["transcript_status"] = "skipped_low_views"
+                r["transcript_debug_reason"] = (
+                    f"view_count {views} < threshold {opts.min_views_for_transcript}"
+                )
+                progress.progress(i / total)
+                continue
 
         t, status, reason = fetch_transcript_with_retries(
             vid,

@@ -93,6 +93,7 @@ def fetch_video_details(youtube, video_ids: List[str]) -> List[Dict]:
                     "channel_title": snippet.get("channelTitle"),
                     "duration_iso": dur_iso,
                     "duration_seconds": dur_seconds,
+                    "view_count": stats.get("viewCount"),
                     "like_count": stats.get("likeCount"),
                     "comment_count": stats.get("commentCount"),
                     # Not available in the public API:

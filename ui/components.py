@@ -22,6 +22,7 @@ class TranscriptOptions:
     max_delay: float
     proxy_http: Optional[str]
     proxy_https: Optional[str]
+    min_views_for_transcript: Optional[int]
 
 
 @dataclass
@@ -117,6 +118,17 @@ def render_transcript_options() -> TranscriptOptions:
         [x.strip() for x in languages_input.split(",") if x.strip()] or ["en"]
     )
 
+    min_views_raw = st.number_input(
+        "Only fetch captions for videos above X views (0 = all)",
+        min_value=0,
+        max_value=100_000_000,
+        value=0,
+        step=1000,
+        help="Set a threshold to skip transcript fetching for low-view videos. "
+        "Metadata is still fetched for every video.",
+    )
+    min_views_for_transcript: Optional[int] = int(min_views_raw) if min_views_raw > 0 else None
+
     st.markdown("### Retry policy (when blocked)")
     retry_col1, retry_col2, retry_col3 = st.columns(3)
     with retry_col1:
@@ -153,4 +165,5 @@ def render_transcript_options() -> TranscriptOptions:
         max_delay=float(max_delay),
         proxy_http=proxy_http,
         proxy_https=proxy_https,
+        min_views_for_transcript=min_views_for_transcript,
     )
